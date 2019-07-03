@@ -1,5 +1,6 @@
 import paper from 'paper';
-import tools from "./tools/toolArea.js";
+import areaTool from "./tools/toolArea.js";
+import selectTool from "./tools/toolSelect.js";
 
 window.onload = function() {
 
@@ -8,22 +9,31 @@ window.onload = function() {
 
   // ToolBox
   class ToolBox {
-    constructor(tools) {
-      this.tools = tools.map(tool => tool());
+
+    constructor(tools, defaultToolName) {
+      this.tools = tools.map(tool => tool(this));
+      this.defaultToolName = defaultToolName;
     }
 
     activateTool(name) {
       const tool = this.tools.find(tool => tool.name === name);
       tool.activate();
     }
+
+    revertToDefault() {
+      this.activateTool(this.defaultToolName);
+    }
+
+    // TODO: Listen for tool completion and revert to default "select" tool
   }
 
   // Set up tools
-  const toolArea = tools.createToolArea;
+  const toolSelect = selectTool.createToolSelect;
+  const toolArea = areaTool.createToolArea;
 
-  // Create the 
-  const toolBox = new ToolBox([toolArea]);
-  toolBox.activateTool('toolArea');
+  // Put them in the toolbox
+  const toolBox = new ToolBox([toolSelect, toolArea], 'toolSelect');
+  toolBox.activateTool('toolSelect');
 
   // Attach click handlers for Tool activation on all
   // DOM buttons with class '.tool-button'

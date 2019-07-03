@@ -2,7 +2,7 @@ import paper from 'paper';
 
 /* Area drawing tool */
 
-const createToolArea = function() {
+const createToolArea = function(toolBox) {
   const tool = new paper.Tool();
   tool.name = 'toolArea';
 
@@ -20,7 +20,7 @@ const createToolArea = function() {
         startDrawingArea(snappedPoint);
       } else {
         if (snappedPoint == areaPath.firstSegment.point) {
-          stopDrawingArea();
+          stopDrawingArea(true);
         } else {
           addCorner(snappedPoint);
         }
@@ -30,7 +30,7 @@ const createToolArea = function() {
 
   tool.onKeyUp = function (event) {
     if (event.key === "Escape") {
-      stopDrawingArea();
+      stopDrawingArea(false);
     }
   }
 
@@ -75,10 +75,31 @@ const createToolArea = function() {
     drawingAidItems.push(label);
   }
   
-  function stopDrawingArea() {
-    // TODO: Clear up the cue items
+  function stopDrawingArea(closed) {
+    // Close the area
+    if (areaPath) {
+      if (closed) {
+        areaPath.closed = true;
+      } else {
+        areaPath.remove();
+      }
+    }
+    // Clear up the cue and drawing aid items
+    if (cueItems) {
+      for (var i = 0, l = cueItems.length; i < l; i++) {
+        cueItems[i].remove();
+      }
+    }
+    if (drawingAidItems) {
+      for (var i = 0, l = drawingAidItems.length; i < l; i++) {
+        drawingAidItems[i].remove();
+      }
+    }
+
+    // Tell others that we're done
+    toolBox.revertToDefault();
   }
-  
+
   function drawPotentialPointCue(point) {
     // Clean up items from last call
     if (cueItems) {
@@ -153,11 +174,13 @@ const createToolArea = function() {
     angleArcPath.dashArray = [10, 4];
     cueItems.push(angleArcPath);
     
-    // debugger;
     // Angle Label
-    var text = new paper.PointText(centrePoint.add(throughVector.normalize(radius + 10)).add(new paper.Point(0, 3)));
-    text.content = Math.round(Math.abs(angle)) + '°';
-    text.fillColor = 'black';
+    var text = new paper.PointText({
+      point: centrePoint.add(throughVector.normalize(radius + 15)).add(new paper.Point(0, 3)),
+      content: Math.round(Math.abs(angle)) + '°',
+      fillColor: 'black',
+      justification: 'center'
+    });
     cueItems.push(text);
   }
   
